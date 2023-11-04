@@ -11,7 +11,10 @@ class HashNotes {
         let baseElem = document.getElementById(this.baseId)
         if (baseElem === null) {console.log("Error: "+this.baseId+" NOT FOUND !!!!!");return;}
         baseElem.innerHTML = this.notesHtml()
+        this.addListeners();
+    }
 
+    addListeners = () => {
         this.clickable = document.querySelectorAll(".clickable")
         this.clickable.forEach(button => {
             if (button.getAttribute('listener') === true) return;
@@ -19,6 +22,18 @@ class HashNotes {
                 e.stopImmediatePropagation();
                 let buttonType = e.target.dataset.button;
                 switch (buttonType) {
+                    case 'add-new-note':
+                        this.addNewNote()
+                        break;
+                    case 'home-btn':
+                        this.showNotesHome(e.target)
+                        break;
+                    case 'reminder-btn':
+                        this.showReminderNotes(e.target)
+                        break;
+                    case 'trash-btn':
+                        this.showTrashNotes(e.target)
+                        break;
                     case 'overlay':
                         this.hideMenus();
                         break;
@@ -44,6 +59,36 @@ class HashNotes {
                 }
             })
         })
+
+        let listItems = document.querySelectorAll(".note-list li span");
+        listItems.forEach(item => {
+            item.addEventListener("keydown", (e) => {
+                this.keyDown(e)
+            })
+        })
+    }
+
+    addNewNote = () => {
+        document.querySelector("#notes_home").innerHTML = this.newNoteHtml();
+        this.addListeners();
+    }
+
+    showNotesHome = (elm) => {
+        document.querySelector("#notes_home").innerHTML = this.notesHome();
+        this.changeActiveMenu(elm)
+        this.addListeners();
+    }
+
+    showReminderNotes = (elm) => {
+        document.querySelector("#notes_home").innerHTML = this.notesReminder();
+        this.changeActiveMenu(elm)
+        this.addListeners();
+    }
+
+    showTrashNotes = (elm) => {
+        document.querySelector("#notes_home").innerHTML = this.notesTrash();
+        this.changeActiveMenu(elm)
+        this.addListeners();
     }
 
     hideMenus = () => {
@@ -64,6 +109,7 @@ class HashNotes {
 
     changeContextmenu = () => {
         let menu = document.querySelector(".context-menu");
+        if(menu === null) return;
         menu.children[0].innerHTML == "Add list" ? menu.children[0].innerHTML = "Text note" : menu.children[0].innerHTML = "Add list"
         menu.children[0].dataset.button == "add-list" ? menu.children[0].dataset.button = "text-note" : menu.children[0].dataset.button = "add-list"
     }
@@ -72,9 +118,21 @@ class HashNotes {
         document.querySelector("#new_note_pin").style.color=color;
     }
 
+    changeActiveMenu = (elm) => {
+        console.log(elm);
+        document.querySelectorAll(".menu-item").forEach(button => {
+            button.classList.remove("active");
+        })
+        elm.classList.add("active")
+    }
+
     addList = () => {
-        document.querySelector("#note-section").innerHTML = this.notesListHtml();
-        this.changeContextmenu();
+        let noteSection = document.querySelector("#note-section")
+        if(noteSection !== null) {
+            noteSection.innerHTML = this.notesListHtml()
+        }
+        this.changeContextmenu()
+        this.addListeners()
     }
 
     textNote = () => {
@@ -87,32 +145,46 @@ class HashNotes {
         let list = document.querySelector("#add_item");
         let div = document.createElement('div');
         div.innerHTML = item.trim();
+        if(list === null) return
         list.before(div.firstChild)
+        this.addListeners()
+    }
+
+    deleteListItem = (e) => {
+        if(e.target.innerHTML.length == 0){
+            e.target.parentNode.remove()
+        }
+    }
+
+    keyDown = (e) => {
+        switch (e.key) {
+            case 'Backspace':
+                this.deleteListItem(e)
+                break;
+        
+            default:
+                break;
+        }
     }
 
 
     notesHtml = () => {
         return `
-        <div class="clickable notes" data-button="notes">
-            <div class="notes-sidebar" data-button="notes">
+        <div class="notes">
+            <div class="notes-sidebar">
                 <ul>
-                    <li><a href="" class="menu-item active"><i class="fa fa-lightbulb"></i> Notes</a></li>
-                    <li><a href="" class="menu-item"><i class="fa fa-bell"></i> Reminders</a></li>
-                    <li><a href="" class="menu-item"><i class="fa fa-trash"></i> Trash</a></li>
+                    <li><span href="" class="menu-item clickable active" data-button="home-btn"><i class="fa fa-lightbulb"></i> Notes</span></li>
+                    <li><span href="" class="menu-item clickable" data-button="reminder-btn"><i class="fa fa-bell"></i> Reminders</span></li>
+                    <li><span href="" class="menu-item clickable" data-button="trash-btn"><i class="fa fa-trash"></i> Trash</span></li>
                 </ul>
             </div>
-            <div class="notes-content-area" data-button="notes">
+            <div class="notes-content-area">
                 <div class="take-note">
-                    <div class="take-note-inner">
-                        <span><i class="fa fa-arrow-left"></i> Take a note</span>
-                        <span><i class="fa fa-check-square"></i> <i class="fa fa-image"></i></span>
+                    <div class="take-note-inner clickable" data-button="add-new-note">
+                        <span data-button="add-new-note" style="cursor:pointer;"><i class="fa fa-arrow-left" data-button="home-btn"></i> Take a note</span>
+                        <span data-button="add-new-note"><i class="fa fa-check-square" data-button="add-list"></i> <i class="fa fa-image" data-button="add-new-note"></i></span>
                     </div>
-                    <div id=notes_home>
-                        `+
-                        this.notesHome()
-                        +`
-                    </div>
-                    `+this.newNoteHtml()+`
+                    <div id=notes_home>`+this.notesHome()+`</div>
                 </div>
                 
             </div>
@@ -121,7 +193,7 @@ class HashNotes {
 
     notesTextHtml = () => {
         return `
-            <textarea name="note_text" id="note_text" class="note-text" rows="1" placeholder="Take a note..." data-button="notes"></textarea>
+            <textarea name="note_text" id="note_text" class="note-text" rows="1" placeholder="Take a note..."></textarea>
         `
     }
 
@@ -148,7 +220,7 @@ class HashNotes {
                             </div>
                         </div>
                     `
-                }else{
+                }else if(!this.data[property].hasOwnProperty("trashed") && !this.data[property].hasOwnProperty("reminder")){
                     otherNotesHtml+=`
                         <div class="note-item" style="background:${this.data[property].color}">
                             <h5>${this.data[property].title}</h5>
@@ -160,23 +232,66 @@ class HashNotes {
                 }
             }
         }
-        let notesHtml = `
-            <div>
-                <h6>PINNED</h6>
-                <div class="notes_home">
-                `+pinnedNotesHtml+`</div>
-                <h6>OTHERS</h6>
-                <div class="notes_home">
-                `+otherNotesHtml+`</div>
-            </div>
-        `
-        return notesHtml
+        let notesHtml = `<div>`;
+        if(pinnedNotesHtml != ''){
+            notesHtml+= `
+            <h6>PINNED</h6>
+            <div class="notes_home">
+                `+pinnedNotesHtml+`
+            </div>`
+        }
+        if(otherNotesHtml != ''){
+            notesHtml+=`
+            <h6>OTHERS</h6>
+            <div class="notes_home">
+                `+otherNotesHtml+`
+            </div>`
+        }
+        return notesHtml+=`</div>`
+    }
+
+    notesReminder = () => {
+        let notesHtml = `<div class="notes_home">`
+        for (const property in this.data) {
+            if(this.data.hasOwnProperty(property)){
+                if(this.data[property].hasOwnProperty("reminder") && this.data[property].reminder === true){
+                    notesHtml+=`
+                        <div class="note-item" style="background:${this.data[property].color}">
+                            <h5>${this.data[property].title}</h5>
+                            <div class="note-content">
+                                ${this.data[property].text}
+                            </div>
+                        </div>
+                    `
+                }
+            }
+        }
+        return notesHtml+=`</div>`
+    }
+
+    notesTrash = () => {
+        let notesHtml = `<div class="notes_home">`
+        for (const property in this.data) {
+            if(this.data.hasOwnProperty(property)){
+                if(this.data[property].hasOwnProperty("trashed") && this.data[property].trashed === true){
+                    notesHtml+=`
+                        <div class="note-item" style="background:${this.data[property].color}">
+                            <h5>${this.data[property].title}</h5>
+                            <div class="note-content">
+                                ${this.data[property].text}
+                            </div>
+                        </div>
+                    `
+                }
+            }
+        }
+        return notesHtml+=`</div>`
     }
 
     newNoteHtml = () => {
         return `
-            <div class="new-note" data-button="notes">
-                <div class="note-title" data-button="notes">
+            <div class="new-note">
+                <div class="note-title">
                     <span contenteditable="true">Title</span>
                     <span><i class="fa-solid fa-thumbtack" id="new_note_pin"></i></span>
                 </div>
@@ -184,7 +299,7 @@ class HashNotes {
                 `+this.notesTextHtml()+`
                     
                 </div>
-                <div class="note-foot" data-button="notes">
+                <div class="note-foot">
                     <span style="position:relative">
                         <i class="fa fa-bell"></i>
                         <i class="fa fa-image"></i>
