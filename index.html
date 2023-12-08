@@ -25,36 +25,36 @@
     <script>
       let notesData = {
         '1':{
+          id : "1",
           title:"First note",
-          type:'text',
           text:'This is my first note',
           color:'#95e2b9',
           pinned: false,
         },
         '2':{
+          id : "2",
           title:"Second note",
-          type:'text',
           text:'This is my second note',
           color:'#fedf9a',
           pinned: true,
         },
         '3':{
+          id : "3",
           title:"Third test note",
-          type:'text',
           text:'testing my notes js ap',
           color:'#a8cfff',
           pinned: true,
         },
         '4':{
+          id : "4",
           title:"Forth test note",
-          type:'text',
           text:'testing my notes js ap',
           color:'#eee',
           pinned: false,
         },
         '5':{
+          id : "5",
           title:"Fifth test note",
-          type:'html',
           text:`<ul>
               <li>list first item</li>
               <li>second list item</li>
@@ -64,8 +64,8 @@
           pinned: false,
         },
         '6':{
+          id : "6",
           title:"This is a reminder",
-          type:'html',
           text:`<ul>
               <li>list first item</li>
               <li>second list item</li>
@@ -75,8 +75,8 @@
           reminder: true,
         },
         '7':{
+          id : "7",
           title:"This note was trashed",
-          type:'html',
           text:`<ul>
               <li>list first item</li>
               <li>second list item</li>
@@ -87,6 +87,21 @@
         }
       }
       new HashNotes("notes",notesData);
+
+      // will be called when new note data changed
+      function onNoteChange(note){
+        console.log(note);
+      }
+
+      // will be called when note close btn clicked
+      function onNoteClose(note){
+        console.log(note);
+      }
+
+      // will be called when Ctrl+S btn pressed
+      function onNoteSave(note){
+        console.log(note);
+      }
     </script>
   </body>
 </html>
